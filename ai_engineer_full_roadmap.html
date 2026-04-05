@@ -1,0 +1,532 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, sans-serif); }
+  .wrap { padding: 1.5rem 1rem 2rem; }
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+  .header p { font-size: 13px; color: var(--color-text-secondary); }
+  .phases { display: flex; flex-direction: column; gap: 0; }
+  .phase { display: flex; gap: 0; position: relative; }
+  .phase-left { display: flex; flex-direction: column; align-items: center; width: 48px; flex-shrink: 0; }
+  .dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; z-index: 1; }
+  .line { width: 2px; flex: 1; min-height: 12px; }
+  .phase-content { flex: 1; padding: 0 0 2rem 12px; }
+  .phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-top: 6px; }
+  .phase-tag { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+  .phase-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .phase-sub { font-size: 12px; color: var(--color-text-secondary); margin-left: auto; white-space: nowrap; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+  .card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; cursor: pointer; transition: border-color 0.15s; }
+  .card:hover { border-color: var(--color-border-secondary); }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .card-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+  .card-lang { font-size: 11px; margin-top: 6px; padding: 1px 6px; border-radius: 10px; display: inline-block; }
+  .tip-box { background: var(--color-background-secondary); border-left: 2px solid; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 8px 12px; margin-top: 10px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+  .project-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .proj-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem; justify-content: center; }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+  .leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .c1-dot { background: #7F77DD; } .c1-line { background: #CECBF6; } .c1-tag { background: #EEEDFE; color: #3C3489; }
+  .c1-lang { background: #EEEDFE; color: #3C3489; } .c1-proj { border-color: #AFA9EC; color: #3C3489; } .c1-tip { border-color: #7F77DD; }
+  .c2-dot { background: #1D9E75; } .c2-line { background: #9FE1CB; } .c2-tag { background: #E1F5EE; color: #085041; }
+  .c2-lang { background: #E1F5EE; color: #085041; } .c2-proj { border-color: #5DCAA5; color: #085041; } .c2-tip { border-color: #1D9E75; }
+  .c3-dot { background: #378ADD; } .c3-line { background: #B5D4F4; } .c3-tag { background: #E6F1FB; color: #0C447C; }
+  .c3-lang { background: #E6F1FB; color: #0C447C; } .c3-proj { border-color: #85B7EB; color: #0C447C; } .c3-tip { border-color: #378ADD; }
+  .c4-dot { background: #BA7517; } .c4-line { background: #FAC775; } .c4-tag { background: #FAEEDA; color: #633806; }
+  .c4-lang { background: #FAEEDA; color: #633806; } .c4-proj { border-color: #EF9F27; color: #633806; } .c4-tip { border-color: #BA7517; }
+  .c5-dot { background: #D85A30; } .c5-line { background: #F5C4B3; } .c5-tag { background: #FAECE7; color: #4A1B0C; }
+  .c5-lang { background: #FAECE7; color: #4A1B0C; } .c5-proj { border-color: #F0997B; color: #4A1B0C; } .c5-tip { border-color: #D85A30; }
+  .c6-dot { background: #639922; } .c6-line { background: #C0DD97; } .c6-tag { background: #EAF3DE; color: #173404; }
+  .c6-lang { background: #EAF3DE; color: #173404; } .c6-proj { border-color: #97C459; color: #173404; } .c6-tip { border-color: #639922; }
+
+  @media (prefers-color-scheme: dark) {
+    .c1-dot { background: #7F77DD; } .c1-line { background: #3C3489; } .c1-tag { background: #26215C; color: #CECBF6; }
+    .c1-lang { background: #26215C; color: #CECBF6; } .c1-proj { border-color: #534AB7; color: #CECBF6; }
+    .c2-dot { background: #1D9E75; } .c2-line { background: #085041; } .c2-tag { background: #04342C; color: #9FE1CB; }
+    .c2-lang { background: #04342C; color: #9FE1CB; } .c2-proj { border-color: #0F6E56; color: #9FE1CB; }
+    .c3-dot { background: #378ADD; } .c3-line { background: #0C447C; } .c3-tag { background: #042C53; color: #B5D4F4; }
+    .c3-lang { background: #042C53; color: #B5D4F4; } .c3-proj { border-color: #185FA5; color: #B5D4F4; }
+    .c4-dot { background: #EF9F27; } .c4-line { background: #633806; } .c4-tag { background: #412402; color: #FAC775; }
+    .c4-lang { background: #412402; color: #FAC775; } .c4-proj { border-color: #854F0B; color: #FAC775; }
+    .c5-dot { background: #D85A30; } .c5-line { background: #4A1B0C; } .c5-tag { background: #4A1B0C; color: #F5C4B3; }
+    .c5-lang { background: #4A1B0C; color: #F5C4B3; } .c5-proj { border-color: #993C1D; color: #F5C4B3; }
+    .c6-dot { background: #639922; } .c6-line { background: #173404; } .c6-tag { background: #173404; color: #C0DD97; }
+    .c6-lang { background: #173404; color: #C0DD97; } .c6-proj { border-color: #3B6D11; color: #C0DD97; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="header">
+    <h1>Full AI Engineer Roadmap</h1>
+    <p>Beginner → Professional AI Engineer · Python + C++ · ~12 months</p>
+  </div>
+
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot c1-dot"></div>Python basics</div>
+    <div class="leg-item"><div class="leg-dot c2-dot"></div>DSA & OOP</div>
+    <div class="leg-item"><div class="leg-dot c3-dot"></div>C++ & Systems</div>
+    <div class="leg-item"><div class="leg-dot c4-dot"></div>ML & AI</div>
+    <div class="leg-item"><div class="leg-dot c5-dot"></div>Deep learning</div>
+    <div class="leg-item"><div class="leg-dot c6-dot"></div>Portfolio & jobs</div>
+  </div>
+
+  <div class="phases">
+
+    <!-- Phase 1 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c1-dot" style="color:#fff;">1</div>
+        <div class="line c1-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c1-tag">Month 1</span>
+          <span class="phase-title">Python & Programming Basics</span>
+          <span class="phase-sub">30–60 min/day</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Explain Python variables, loops and functions for beginners')">
+            <div class="card-title">Python syntax</div>
+            <div class="card-desc">Variables, loops, functions, conditionals</div>
+            <span class="card-lang c1-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain Python lists, dictionaries, sets and tuples')">
+            <div class="card-title">Data types</div>
+            <div class="card-desc">Lists, dicts, sets, tuples, strings</div>
+            <span class="card-lang c1-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain file handling and error handling in Python')">
+            <div class="card-title">Files & errors</div>
+            <div class="card-desc">File I/O, try/except, modules</div>
+            <span class="card-lang c1-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('What is PEP8 and how do I write clean Python code?')">
+            <div class="card-title">Clean code</div>
+            <div class="card-desc">PEP8, naming conventions, docstrings</div>
+            <span class="card-lang c1-lang">Python</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c1-proj">Mini project: To-Do app</span>
+          <span class="proj-badge c1-proj">Calculator script</span>
+          <span class="proj-badge c1-proj">FizzBuzz, Fibonacci</span>
+        </div>
+        <div class="tip-box c1-tip">Pro tip: Start every script with <code>if __name__ == "__main__":</code> from day one. It's a professional habit.</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c2-dot" style="color:#fff;">2</div>
+        <div class="line c2-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c2-tag">Month 2</span>
+          <span class="phase-title">Data Structures & Algorithms</span>
+          <span class="phase-sub">Critical for interviews</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Explain arrays, linked lists and stacks in Python with examples')">
+            <div class="card-title">Linear structures</div>
+            <div class="card-desc">Arrays, linked lists, stacks, queues</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain trees and graphs in data structures')">
+            <div class="card-title">Trees & graphs</div>
+            <div class="card-desc">Binary trees, BST, graphs, traversal</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain recursion with examples and common patterns')">
+            <div class="card-title">Recursion</div>
+            <div class="card-desc">Base cases, call stack, memoization</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain sorting and searching algorithms with Big O complexity')">
+            <div class="card-title">Sorting & search</div>
+            <div class="card-desc">Merge sort, binary search, Big O</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c2-proj">LeetCode easy problems</span>
+          <span class="proj-badge c2-proj">Implement stack & queue</span>
+          <span class="proj-badge c2-proj">HackerRank challenges</span>
+        </div>
+        <div class="tip-box c2-tip">Solve 1–2 problems daily. Comment your code — it forces you to think clearly about what you're doing.</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c2-dot" style="color:#fff;">3</div>
+        <div class="line c2-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c2-tag">Month 3</span>
+          <span class="phase-title">OOP, Git & Real Projects</span>
+          <span class="phase-sub">Write maintainable code</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Explain OOP concepts: classes, objects, inheritance, encapsulation and polymorphism in Python')">
+            <div class="card-title">OOP concepts</div>
+            <div class="card-desc">Classes, inheritance, polymorphism, encapsulation</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('How do I use Git and GitHub for version control? Show me the basic commands')">
+            <div class="card-title">Git & GitHub</div>
+            <div class="card-desc">init, add, commit, push, pull, branches</div>
+            <span class="card-lang c2-lang">Git</span>
+          </div>
+          <div class="card" onclick="sendPrompt('How do I write unit tests in Python with pytest or unittest?')">
+            <div class="card-title">Unit testing</div>
+            <div class="card-desc">pytest, unittest, assert statements</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('What is modular coding and how do I structure a Python project properly?')">
+            <div class="card-title">Modular design</div>
+            <div class="card-desc">Separate files, reusable functions, imports</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c2-proj">Contact manager app</span>
+          <span class="proj-badge c2-proj">Library system (OOP)</span>
+          <span class="proj-badge c2-proj">Web scraper</span>
+          <span class="proj-badge c2-proj">REST API with Flask</span>
+        </div>
+        <div class="tip-box c2-tip">Push everything to GitHub. Recruiters check GitHub profiles. Projects matter more than certificates.</div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c3-dot" style="color:#fff;">4</div>
+        <div class="line c3-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c3-tag">Month 4</span>
+          <span class="phase-title">C++ Basics & Math Foundations</span>
+          <span class="phase-sub">For high-performance AI</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Teach me C++ fundamentals: variables, loops, arrays, pointers and references')">
+            <div class="card-title">C++ fundamentals</div>
+            <div class="card-desc">Variables, loops, arrays, vectors, pointers</div>
+            <span class="card-lang c3-lang">C++</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain OOP in C++: classes, constructors, destructors, inheritance')">
+            <div class="card-title">OOP in C++</div>
+            <div class="card-desc">Classes, constructors, destructors, inheritance</div>
+            <span class="card-lang c3-lang">C++</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain linear algebra for AI: vectors, matrices, dot products and matrix multiplication')">
+            <div class="card-title">Linear algebra</div>
+            <div class="card-desc">Vectors, matrices, dot products, multiplication</div>
+            <span class="card-lang c3-lang">Math</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain calculus basics for AI: derivatives, gradient descent')">
+            <div class="card-title">Calculus basics</div>
+            <div class="card-desc">Derivatives, chain rule, gradient descent concept</div>
+            <span class="card-lang c3-lang">Math</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c3-proj">Matrix multiply in C++</span>
+          <span class="proj-badge c3-proj">Linear regression in C++</span>
+          <span class="proj-badge c3-proj">Speed compare vs Python</span>
+        </div>
+        <div class="tip-box c3-tip">C++ is ~10–100× faster than Python for numeric work. Implementing linear regression from scratch in both languages helps you feel the difference.</div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c4-dot" style="color:#fff;">5</div>
+        <div class="line c4-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c4-tag">Month 5–6</span>
+          <span class="phase-title">Machine Learning Basics</span>
+          <span class="phase-sub">Python + C++ combined</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Explain NumPy and Pandas for data manipulation with examples')">
+            <div class="card-title">NumPy & Pandas</div>
+            <div class="card-desc">Arrays, DataFrames, data preprocessing</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain linear regression and logistic regression with Python code')">
+            <div class="card-title">ML algorithms</div>
+            <div class="card-desc">Linear/logistic regression, decision trees, k-NN</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain activation functions: sigmoid, ReLU, tanh and when to use each')">
+            <div class="card-title">Activation functions</div>
+            <div class="card-desc">Sigmoid, ReLU, tanh, softmax</div>
+            <span class="card-lang c4-lang">Both</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Implement a simple neural network forward pass in C++')">
+            <div class="card-title">ML in C++</div>
+            <div class="card-desc">Implement regression from scratch using vectors/matrices</div>
+            <span class="card-lang c3-lang">C++</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain forward propagation and backpropagation in neural networks')">
+            <div class="card-title">Forward & backprop</div>
+            <div class="card-desc">Compute outputs, gradient descent, weight updates</div>
+            <span class="card-lang c4-lang">Both</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain Dlib, MLPack and Eigen for C++ machine learning')">
+            <div class="card-title">C++ ML libraries</div>
+            <div class="card-desc">Dlib, MLPack, Eigen, Shark, FANN</div>
+            <span class="card-lang c3-lang">C++</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c4-proj">House price predictor</span>
+          <span class="proj-badge c4-proj">2-layer neural net in C++</span>
+          <span class="proj-badge c4-proj">Data visualization</span>
+          <span class="proj-badge c4-proj">Logic gate classifier</span>
+        </div>
+        <div class="tip-box c4-tip">Prototype in Python first (fast, easy to debug), then re-implement the critical computation in C++ for speed. That's how real AI engineers work.</div>
+      </div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c4-dot" style="color:#fff;">6</div>
+        <div class="line c4-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c4-tag">Month 7</span>
+          <span class="phase-title">Advanced DSA & Interview Prep</span>
+          <span class="phase-sub">LeetCode medium problems</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Explain dynamic programming with examples and common patterns')">
+            <div class="card-title">Dynamic programming</div>
+            <div class="card-desc">Memoization, tabulation, classic DP problems</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain graph algorithms: BFS, DFS, Dijkstra, topological sort')">
+            <div class="card-title">Graph algorithms</div>
+            <div class="card-desc">BFS, DFS, Dijkstra, topological sort</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('What is time and space complexity? How do I analyze algorithms with Big O notation?')">
+            <div class="card-title">Time & space complexity</div>
+            <div class="card-desc">Big O, Big Ω, O(n log n) vs O(n²) analysis</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('What are common LeetCode patterns I should know for tech interviews?')">
+            <div class="card-title">Interview patterns</div>
+            <div class="card-desc">Sliding window, two pointers, fast/slow pointers</div>
+            <span class="card-lang c2-lang">Python</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c2-proj">1 medium LeetCode/day</span>
+          <span class="proj-badge c2-proj">Focus on patterns</span>
+          <span class="proj-badge c2-proj">Practice HackerRank</span>
+        </div>
+        <div class="tip-box c2-tip">Focus on understanding patterns, not memorizing solutions. "Sliding window", "two pointers", and "backtracking" cover ~80% of interview problems.</div>
+      </div>
+    </div>
+
+    <!-- Phase 7 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c5-dot" style="color:#fff;">7</div>
+        <div class="line c5-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c5-tag">Month 8–9</span>
+          <span class="phase-title">Deep Learning</span>
+          <span class="phase-sub">PyTorch + C++ inference</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('How do I get started with PyTorch for deep learning? Show me a basic example')">
+            <div class="card-title">PyTorch basics</div>
+            <div class="card-desc">Tensors, autograd, model definition, training loop</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain Convolutional Neural Networks (CNN) with an image classification example')">
+            <div class="card-title">CNNs</div>
+            <div class="card-desc">Convolutions, pooling, image classification</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain Recurrent Neural Networks and LSTMs with sequence data examples')">
+            <div class="card-title">RNNs & LSTMs</div>
+            <div class="card-desc">Sequence models, time series, NLP tasks</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain batch normalization and dropout in deep learning')">
+            <div class="card-title">Regularization</div>
+            <div class="card-desc">Batch norm, dropout, overfitting prevention</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('How do I implement neural network inference in C++?')">
+            <div class="card-title">C++ inference</div>
+            <div class="card-desc">Implement forward pass in C++ for production speed</div>
+            <span class="card-lang c3-lang">C++</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain NLP basics: tokenization, embeddings, transformers')">
+            <div class="card-title">NLP basics</div>
+            <div class="card-desc">Tokenization, word embeddings, transformers intro</div>
+            <span class="card-lang c4-lang">Python</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c5-proj">MNIST digit recognition (Python)</span>
+          <span class="proj-badge c5-proj">Optimize inference in C++</span>
+          <span class="proj-badge c5-proj">Image classifier with CNN</span>
+          <span class="proj-badge c5-proj">Sentiment analysis (NLP)</span>
+        </div>
+        <div class="tip-box c5-tip">TensorFlow and PyTorch cores are written in C++. Building the inference step yourself in C++ teaches you what those libraries do under the hood.</div>
+      </div>
+    </div>
+
+    <!-- Phase 8 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c3-dot" style="color:#fff;">8</div>
+        <div class="line c3-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c3-tag">Month 10</span>
+          <span class="phase-title">GPU Acceleration & System Design</span>
+          <span class="phase-sub">High-performance AI</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('Explain CUDA programming basics for GPU-accelerated AI')">
+            <div class="card-title">CUDA basics</div>
+            <div class="card-desc">GPU kernels, cuDNN, multi-threading for deep learning</div>
+            <span class="card-lang c3-lang">C++/CUDA</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain TensorRT and how it is used for fast AI inference in C++')">
+            <div class="card-title">TensorRT & Dlib</div>
+            <div class="card-desc">Production inference optimization, library integration</div>
+            <span class="card-lang c3-lang">C++</span>
+          </div>
+          <div class="card" onclick="sendPrompt('Explain system design concepts: microservices, APIs, databases, caching, distributed systems')">
+            <div class="card-title">System design</div>
+            <div class="card-desc">Microservices, APIs, databases, caching, scaling</div>
+            <span class="card-lang c6-lang">Both</span>
+          </div>
+          <div class="card" onclick="sendPrompt('What is the architecture of a real AI product? Walk me through user interface, backend, model, and engine layers')">
+            <div class="card-title">AI product architecture</div>
+            <div class="card-desc">UI (JS) → API (Python/Go) → Model → C++ engine</div>
+            <span class="card-lang c5-lang">All</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c3-proj">CNN with CUDA (image classifier)</span>
+          <span class="proj-badge c3-proj">RL simulation (grid world)</span>
+          <span class="proj-badge c3-proj">Compare Python vs C++ speed</span>
+        </div>
+        <div class="tip-box c3-tip">GPU acceleration is the difference between a model that trains in days vs hours. CUDA + cuDNN is the key skill for deep learning infrastructure roles at NVIDIA, Google, and OpenAI.</div>
+      </div>
+    </div>
+
+    <!-- Phase 9 -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c6-dot" style="color:#fff;">9</div>
+        <div class="line c6-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-tag c6-tag">Month 11–12</span>
+          <span class="phase-title">Portfolio, Real Projects & Job Targeting</span>
+          <span class="phase-sub">Entry-level & internships</span>
+        </div>
+        <div class="cards">
+          <div class="card" onclick="sendPrompt('How do I build an end-to-end ML project? Walk me through data preprocessing, model training, and deployment')">
+            <div class="card-title">End-to-end ML project</div>
+            <div class="card-desc">Data in Python → model in PyTorch → inference in C++</div>
+            <span class="card-lang c6-lang">Both</span>
+          </div>
+          <div class="card" onclick="sendPrompt('How do I build a chatbot with a backend API? What tech stack should I use?')">
+            <div class="card-title">Chatbot + backend API</div>
+            <div class="card-desc">Web app + ML model, Python/Go backend</div>
+            <span class="card-lang c6-lang">Python</span>
+          </div>
+          <div class="card" onclick="sendPrompt('How do I read open-source code from OpenAI, TensorFlow or HuggingFace to learn from it?')">
+            <div class="card-title">Read open-source</div>
+            <div class="card-desc">OpenAI, TensorFlow, HuggingFace codebases</div>
+            <span class="card-lang c6-lang">Both</span>
+          </div>
+          <div class="card" onclick="sendPrompt('How do I write a good GitHub README and structure my portfolio for AI engineering jobs?')">
+            <div class="card-title">GitHub portfolio</div>
+            <div class="card-desc">README.md, explain Python→C++ workflow, clean code</div>
+            <span class="card-lang c6-lang">Both</span>
+          </div>
+        </div>
+        <div class="project-row">
+          <span class="proj-badge c6-proj">End-to-end ML pipeline</span>
+          <span class="proj-badge c6-proj">Deep learning + GPU app</span>
+          <span class="proj-badge c6-proj">RL agent (optional)</span>
+          <span class="proj-badge c6-proj">3+ polished GitHub repos</span>
+        </div>
+
+        <div style="margin-top: 16px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px;">
+          <div style="font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px;">Target companies after 12 months</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px;">
+            <div class="card" onclick="sendPrompt('What skills does OpenAI look for in AI engineers?')">
+              <div class="card-title">OpenAI</div>
+              <div class="card-desc">Research + engineering AI roles · Python + C++</div>
+            </div>
+            <div class="card" onclick="sendPrompt('What AI roles does Google offer and what skills are needed?')">
+              <div class="card-title">Google / DeepMind</div>
+              <div class="card-desc">TensorFlow, AI research, Search AI · Python + C++</div>
+            </div>
+            <div class="card" onclick="sendPrompt('What does NVIDIA look for in AI/GPU engineering roles?')">
+              <div class="card-title">NVIDIA</div>
+              <div class="card-desc">GPU AI, CUDA, low-level performance · C++ heavy</div>
+            </div>
+            <div class="card" onclick="sendPrompt('What AI roles does Meta offer and what tech stack do they use?')">
+              <div class="card-title">Meta</div>
+              <div class="card-desc">Large-scale ML, recommendation systems · Python + C++</div>
+            </div>
+            <div class="card" onclick="sendPrompt('What is the Microsoft AI ecosystem and what roles are available?')">
+              <div class="card-title">Microsoft</div>
+              <div class="card-desc">Azure AI, GitHub Copilot, Bing AI · Python + C++</div>
+            </div>
+            <div class="card" onclick="sendPrompt('What ML infrastructure roles does Amazon offer?')">
+              <div class="card-title">Amazon / AWS</div>
+              <div class="card-desc">AWS ML pipelines, AI services · Python + C++</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-box c6-tip" style="margin-top: 12px; border-left-color: #639922;">After 12 months you'll have: strong Python + C++ skills, OOP, DSA, ML/DL knowledge, GPU basics, real projects on GitHub, and system design understanding — ready for internships and entry-level AI roles.</div>
+      </div>
+    </div>
+
+    <!-- Final node -->
+    <div class="phase">
+      <div class="phase-left">
+        <div class="dot c6-dot" style="color:#fff; font-size:16px;">✓</div>
+      </div>
+      <div class="phase-content" style="padding-top:8px; padding-bottom: 0;">
+        <div style="font-size:14px; font-weight:500; color: var(--color-text-primary);">AI Engineer ready</div>
+        <div style="font-size:12px; color: var(--color-text-secondary); margin-top:2px;">Python · C++ · ML · Deep Learning · GPU · System Design · GitHub Portfolio</div>
+      </div>
+    </div>
+
+  </div>
+</div>
